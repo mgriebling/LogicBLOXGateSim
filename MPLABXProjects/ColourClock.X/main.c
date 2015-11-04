@@ -13,41 +13,9 @@
 
 #include "system.h"        /* System funct/params, like osc/peripheral config */
 #include "user.h"          /* User funct/params, such as InitApp */
+#include "Clock.h"
 
 #define SO		LATAbits.LATA2
-#define Nop()	NOP()
-
-static unsigned char red, green, blue;
-
-/*
- 1057  0012  1FF1               	btfss	WriteRGB@g,7
-  1058  0013  2821               	goto	l22
-  1059  0014  0022               	movlb	2	; select bank2
-  1060  0015  150C               	bsf	12,2	;volatile
-  1061  0016  0000               	nop
-  1062  0017  0000               	nop
-  1063  0018  0000               	nop
-  1064  0019  0000               	nop
-  1065  001A  0000               	nop
-  1066  001B  0000               	nop
-  1067  001C  1003               	clrc
-  1068  001D  0DF1               	rlf	WriteRGB@g,f
-  1069  001E  0022               	movlb	2	; select bank2
-  1070  001F  110C               	bcf	12,2	;volatile
-  1071  0020  282C               	goto	l760
-  1072  0021                     l22:	
-  1073  0021  0022               	movlb	2	; select bank2
-  1074  0022  150C               	bsf	12,2	;volatile
-  1075  0023  0000               	nop
-  1076  0024  0022               	movlb	2	; select bank2
-  1077  0025  110C               	bcf	12,2	;volatile
-  1078  0026  0000               	nop
-  1079  0027  0000               	nop
-  1080  0028  0000               	nop
-  1081  0029  0000               	nop
-  1082  002A  1003               	clrc
-  1083  002B  0DF1               	rlf	WriteRGB@g,f
- */
 
 #define BITOUT(b)\
 	asm("bsf	12,2");\
@@ -98,15 +66,7 @@ static unsigned char red, green, blue;
 
 /* i.e. uint16_t <variable_name>; */
 inline void WriteRGB (unsigned char r, unsigned char g, unsigned char b) {
-	asm("BANKSEL _red");  // only need this once
-    BITOUT(g);
-    BITOUT(g);
-    BITOUT(g);
-    BITOUT(g);
-    BITOUT(g);
-    BITOUT(g);
-    BITOUT(g);
-    BITOUT(g);
+	asm("BANKSEL _r");  // only need this once
     BITOUT(r);
     BITOUT(r);
     BITOUT(r);
@@ -115,6 +75,14 @@ inline void WriteRGB (unsigned char r, unsigned char g, unsigned char b) {
     BITOUT(r);
     BITOUT(r);
     BITOUT(r);
+    BITOUT(g);
+    BITOUT(g);
+    BITOUT(g);
+    BITOUT(g);
+    BITOUT(g);
+    BITOUT(g);
+    BITOUT(g);
+    BITOUT(g);
     BITOUT(b);
     BITOUT(b);
     BITOUT(b);
@@ -129,13 +97,36 @@ inline void WriteRGB (unsigned char r, unsigned char g, unsigned char b) {
 /******************************************************************************/
 /* User Global Variable Declaration                                           */
 /******************************************************************************/
-
-/* i.e. uint8_t <variable_name>; */
+enum {     Black=0, Brown, Red, Orange, Yellow, Green, Blue, Violet, Gray,  White} hours10, hours1, mins10, mins1, secs10, secs1;
+TCHAR r[] = {0x00u, 0x45u, 0xFFu, 0xFFu,  0xFFu, 0x00u, 0x00u, 0x94u, 0x80u, 0xFFu};
+TCHAR g[] = {0x00u, 0x0Au, 0x00u, 0xA5u,  0xFFu, 0xFFu, 0x00u, 0x00u, 0x80u, 0xFFu};
+TCHAR b[] = {0x00u, 0x0Au, 0x00u, 0x00u,  0x00u, 0x00u, 0xFFu, 0xD3u, 0x80u, 0xFFu};
 
 /******************************************************************************/
 /* Main Program                                                               */
 
 /******************************************************************************/
+
+void DecodeTime(void) {
+//	if (secs1 < 9) {
+//		secs1++;
+//	} else if (secs10 < 5) {
+//		secs10++; secs1 = 0;
+//	} else if (mins1 < 9) {
+//		mins1++; secs1 = 0; secs10 = 0;
+//	} else if (mins10 < 5) {
+//		mins10++; secs1 = 0; secs10 = 0; mins1 = 0;
+//	} else if (hours < 24) {
+//		secs1 = 0; secs10 = 0; mins1 = 0; mins10 = 0;
+//		hours++; hours1 = hours % 10; hours10 = hours / 10;
+//	} else {
+//		secs1 = 0; secs10 = 0; mins1 = 0; mins10 = 0;
+//		hours = 0; hours1 = 0; hours10 = 0;
+//	}
+	secs1 = seconds & 0x0F; secs10 = seconds >> 4;
+	mins1 = minutes & 0x0F; mins10 = minutes >> 4;
+	hours1 = hours & 0x0F; hours10 = hours >> 4;
+}
 
 void main (void) {
 	/* Configure the oscillator for the device */
@@ -143,17 +134,22 @@ void main (void) {
 
 	/* Initialize I/O and Peripherals for application */
 	InitApp();
+	
+	secs1 = Black; secs10 = Black; hours1 = Black; hours10 = Black; mins1 = Black; mins10 = Black;
 
-	red = 0x00; green = 0x55, blue = 0x00;
-	__delay_ms(10);					// oscillator stabilization
 	while (1) {
-		__delay_us(50);				// LCD reset
-		WriteRGB(green, red, blue);	// seconds
-		WriteRGB(red,   green, blue);
-		WriteRGB(blue, red, green);	// minutes
-		WriteRGB(green, red, blue);
-		WriteRGB(red,   green, blue);	// hours
-		WriteRGB(blue, red, green);
+		__delay_us(50);									// LCD reset
+		WriteRGB(r[secs1],  g[secs1],  b[secs1]);		// seconds
+		WriteRGB(r[secs10], g[secs10], b[secs10]);
+		WriteRGB(r[mins1],  g[mins1],  b[mins1]);		// minutes
+		WriteRGB(r[mins10], g[mins10], b[mins10]);
+		WriteRGB(r[hours1], g[hours1], b[hours1]);		// hours
+		WriteRGB(r[hours10], g[hours10], b[hours10]);
+		
+		__delay_ms(250); __delay_ms(250);
+		__delay_ms(250); __delay_ms(250);
+		Clock_ReadTime();
+		DecodeTime();
 	}
 
 }

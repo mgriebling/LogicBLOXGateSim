@@ -1,15 +1,15 @@
-/* Copyright (c) 2005 Solinst Canada Ltd */
 
 #include <xc.h>         /* XC8 General Include File */
 #include "I2C.h"
+
 
 /* Software I2C implementation for use with microcomputers without any
    I2C hardware. */
 
 #define SCL		PORTAbits.RA4			/* Clock  */
 #define SCLDIR	TRISAbits.TRISA4
-#define SCLIN	SCLDIR = 1
-#define SCLOUT	SCLDIR = 0
+#define SCLIN	SCLDIR = 1; __delay_us(3)
+#define SCLOUT	SCLDIR = 0; Nop(); Nop()
 #define SDA		PORTAbits.RA5			/* Data  */
 #define SDADIR  TRISAbits.TRISA5
 #define SDAIN	SDADIR = 1
@@ -36,8 +36,8 @@ static void SendByte(TCHAR b)
    TCHAR cnt = 8;
 	
    while (cnt--) {  
-      if (b&0x80) SDAIN; 	/* set SDA as input -> goes high */
-      else SDAOUT;			/* set SDA as output -> goes low */
+      if (b&0x80) { SDAIN; 	/* set SDA as input -> goes high */
+      } else { SDAOUT; }	/* set SDA as output -> goes low */
       SCLIN;				/* set SCL as input -> goes high */
       b <<= 1; 		 	 	/* shift left 1 bit (part of delay) */			 
       SCLOUT;				/* set SCL as output -> goes low */    
@@ -53,29 +53,25 @@ static BOOLEAN SendByteAck(TCHAR b)
    return Ack();
 } /* end SendByteAck() */
 
+static TCHAR ReceiveByte(void) {
+	TCHAR cnt = 8;
+	TCHAR lb = 0;
 
-static TCHAR ReceiveByte(void)
-{
-   TCHAR cnt = 8;
-   TCHAR lb = 0;
-	
-   while (cnt--) {
-      lb<<=1;			/* shift left 1 bit position */   	
-      SCLIN;			/* set SCL as input -> goes high */   	  
-      if (SDA) lb|=1;	/* set LSB of byte */
-      SCLOUT;			/* set SCL as output -> goes low */    
-   } /* end while */  
-   return lb;	
+	while (cnt--) {
+		lb <<= 1; /* shift left 1 bit position */
+		SCLIN; /* set SCL as input -> goes high */
+		if (SDA) lb |= 1; /* set LSB of byte */
+		SCLOUT; /* set SCL as output -> goes low */
+	} /* end while */
+	return lb;
 } /* end ReceiveByte() */
 
-
-static TCHAR ReceiveByteAck(void)
-{
-   TCHAR lb = ReceiveByte();
-   SDAOUT;		 /* leave SDA low for acknowledge */    
-   Ack();
-   SDAIN;		 /* set SDA high again */   
-   return lb;
+static TCHAR ReceiveByteAck(void) {
+	TCHAR lb = ReceiveByte();
+	SDAOUT; /* leave SDA low for acknowledge */
+	Ack();
+	SDAIN; /* set SDA high again */
+	return lb;
 } /* end ReceiveByteAck() */
 
 
@@ -99,7 +95,7 @@ extern void I2C_Power(BOOLEAN TurnOn, BOOLEAN Count)
 //   } 	
 }
 
-static void Start(TCHAR b, LONGINT adr)
+static void Start(TCHAR b, TCHAR adr)
 {
    I2C_Power(TRUE, FALSE);	/* Power on memories */
 //   di();			/* Disable interrupts */
@@ -107,7 +103,6 @@ static void Start(TCHAR b, LONGINT adr)
 
    /* start sending the data */
    SendByteAck(b);
-   SendByteAck((TCHAR)(adr>>8));	/* output remainder of address */
    SendByteAck((TCHAR)(adr));  
 } /* end Start() */
 
@@ -125,13 +120,14 @@ static void I2C_Init(void)
 {
    /* set up registers for I2C communication */
    SDAIN; SCLIN;			/* set SDA and SCL as inputs */
-   SDA = 0; SCL = 0;		/* set SDA/SCL low, Power off */
+   LATAbits.LATA4 = 0;		/* set SDA/SCL low, Power off */
+   LATAbits.LATA5 = 0;
    I2C_Power(FALSE, FALSE);	/* initially turn off I2C power */ 
    I2C_device = 0xDEu;		/* default is the RTC chip */  	
 }
 	
 
-extern void I2C_GetBuf(LONGINT adr, TCHAR buf[], CARDINAL size)
+extern void I2C_GetBuf(TCHAR adr, TCHAR buf[], CARDINAL size)
 {
    CARDINAL ind;
    
@@ -148,7 +144,7 @@ extern void I2C_GetBuf(LONGINT adr, TCHAR buf[], CARDINAL size)
 } /* end GetBuf() */
 
 
-extern TCHAR I2C_Get(LONGINT adr)
+extern TCHAR I2C_Get(TCHAR adr)
 {
    TCHAR ch;
 	
@@ -157,8 +153,8 @@ extern TCHAR I2C_Get(LONGINT adr)
    /* do start bit */
    DoStart();     
    SendByteAck(I2C_device+1);	/* send device address -- read mode */
-   ch = ReceiveByte();		/* receive byte */
-   Stop();			/* output stop bit */
+   ch = ReceiveByte();			/* receive byte */
+   Stop();						/* output stop bit */
    return ch;
 } /* end Get() */
 
@@ -177,7 +173,7 @@ extern BOOLEAN I2C_GetAck(void)
 } /* end GetAck() */
 
 
-extern void I2C_SendBuf(LONGINT adr, TCHAR buf[], CARDINAL size)
+extern void I2C_SendBuf(TCHAR adr, TCHAR buf[], CARDINAL size)
 {
    CARDINAL ind;
 
@@ -198,7 +194,7 @@ extern BOOLEAN I2C_Device_Present(void)
 }
 
 
-extern void I2C_Send(LONGINT adr, TCHAR byte)
+extern void I2C_Send(TCHAR adr, TCHAR byte)
 {
    Start(I2C_device, adr);	/* output start bit and device address */
    SendByteAck(byte); 		/* output data */

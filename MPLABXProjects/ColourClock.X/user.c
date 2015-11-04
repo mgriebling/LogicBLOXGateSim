@@ -12,6 +12,7 @@
 #include <stdbool.h>        /* For true/false definition */
 
 #include "user.h"
+#include "Clock.h"
 
 /******************************************************************************/
 /* User Functions                                                             */
@@ -42,6 +43,7 @@ void InitApp(void)
 	ANSELA = 0;					// All digital I/O
 
     /* Initialize peripherals */
+	Clock_BEGIN();
 
     /* Enable interrupts */
 }

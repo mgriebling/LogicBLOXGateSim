@@ -33,6 +33,7 @@ void ConfigureOscillator(void)
 	OSCCONbits.SCS = 0;
 	OSCCONbits.IRCF = 0b1110;	// Use internal 8 MHz clock
 	OSCCONbits.SPLLEN = 1;		// Enable 4x PLL   
+	__delay_ms(10);				// oscillator stabilization
 
     /* Typical actions in this function are to tweak the oscillator tuning
     register, select new clock sources, and to wait until new clock sources
