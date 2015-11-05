@@ -16,7 +16,8 @@ extern "C" {
 	
 extern TCHAR seconds, minutes, hours;
 	
-extern void Clock_ReadTime();	
+extern void Clock_ReadTime(void);
+extern void Clock_SetTime(void);
 
 extern void Clock_BEGIN(void);
 

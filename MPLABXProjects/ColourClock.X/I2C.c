@@ -24,8 +24,8 @@ static BOOLEAN Ack(void)
    SCLIN;				/* set SCL as an input so SCL goes high */
    
    /* assume SDA is input */
+   __delay_us(3);		/* delay clock */
    ack = (SDA == 0);	/* sample SDA acknowledge */
-   Nop();				/* delay clock */
    SCLOUT;				/* set SCL to an output so SCL goes low */
    return ack;
 } /* end Ack() */
@@ -74,13 +74,17 @@ static TCHAR ReceiveByteAck(void) {
 	return lb;
 } /* end ReceiveByteAck() */
 
-
-static void DoStart(void)
-{
+static void DoStart(void) {
+	// Verify the SDA/SCL bits are still 0
+   LATAbits.LATA4 = 0;		/* set SDA/SCL low */
+   LATAbits.LATA5 = 0;	
+	
 	/* do start bit */
-	SDAIN; SCLIN;		/* set SCL, SDA as inputs -> go high */	
-	SDAOUT;				/* set SDA as output -> goes low */ 
-	SCLOUT;				/* set SCL as output -> goes low */ 
+	SDAIN;
+	SCLIN; /* set SCL, SDA as inputs -> go high */
+	SDAOUT; /* set SDA as output -> goes low */
+	__delay_us(3);
+	SCLOUT; /* set SCL as output -> goes low */
 } /* end DoStart() */
 
 
@@ -95,25 +99,21 @@ extern void I2C_Power(BOOLEAN TurnOn, BOOLEAN Count)
 //   } 	
 }
 
-static void Start(TCHAR b, TCHAR adr)
-{
-   I2C_Power(TRUE, FALSE);	/* Power on memories */
-//   di();			/* Disable interrupts */
-   DoStart(); 
+static void Start(TCHAR b, TCHAR adr) {
+	DoStart();
 
-   /* start sending the data */
-   SendByteAck(b);
-   SendByteAck((TCHAR)(adr));  
+	/* start sending the data */
+	SendByteAck(b);
+	SendByteAck((TCHAR) (adr));
 } /* end Start() */
 
-
-static void Stop(void)
-{
-   /* do stop bit */
-   SDAOUT;		/* set SDA as output -> goes low */
-   SCLIN;       /* set SCL as input -> goes high */ 	 
-   SDAIN;       /* set SDA as input -> goes high */
-//   ei();			/* Enable interrupts */   
+static void Stop(void) {
+	/* do stop bit */
+	SDAOUT; /* set SDA as output -> goes low */
+	SCLIN; /* set SCL as input -> goes high */
+	__delay_us(3);
+	SDAIN; /* set SDA as input -> goes high */
+	//   ei();			/* Enable interrupts */   
 } /* end Stop() */	
 
 static void I2C_Init(void)
