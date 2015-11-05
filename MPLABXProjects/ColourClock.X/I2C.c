@@ -20,11 +20,7 @@ TCHAR I2C_device;
 static BOOLEAN Ack(void)
 { 
    BOOLEAN ack;
-	
    SCLIN;				/* set SCL as an input so SCL goes high */
-   
-   /* assume SDA is input */
-   __delay_us(3);		/* delay clock */
    ack = (SDA == 0);	/* sample SDA acknowledge */
    SCLOUT;				/* set SCL to an output so SCL goes low */
    return ack;

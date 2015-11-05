@@ -17,6 +17,9 @@ void Clock_ReadTime(void) {
 	seconds = buf[0] & 0x7F;		// Ignore oscillator enable bit
 	minutes = buf[1];
 	hours  = buf[2];
+	if (!(seconds <= 0x59 && minutes <= 0x59 && hours <= 0x23)) {
+		seconds = 0x22; minutes = 0x22; hours = 0x22;
+	}
 }
 
 void Clock_SetTime(void) {
@@ -33,11 +36,7 @@ void Clock_BEGIN(void) {
 	
 	// Initialize the clock chip
 	I2C_SetDevice(RTC_DEVICE);
-	if (I2C_Device_Present()) {
-		I2C_Send(CONTROLREG, 0b01000000);	// 1Hz output
-		seconds = 0; minutes = 0; hours = 0;
-	} else {
-		seconds = 0x22; minutes = 0x22; hours = 0x22;  // All red digits are error
-	}
+	I2C_Send(CONTROLREG, 0b01000000);	// 1Hz output
+	seconds = 0; minutes = 0; hours = 0;
 	Clock_SetTime();
 }
