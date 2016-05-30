@@ -2,12 +2,11 @@
 /* System Level #define Macros                                                */
 /******************************************************************************/
 
-/* TODO Define system operating frequency */
+#include "mcc_generated_files/mcc.h"
 
 /* Microcontroller MIPs (FCY) */
-#define SYS_FREQ        8000000L
-#define _XTAL_FREQ		SYS_FREQ
-#define FCY             SYS_FREQ/4
+#define SYS_FREQ        _XTAL_FREQ
+#define FCY             (SYS_FREQ/4)
 
 #define ON  (TRUE)
 #define OFF (FALSE)
@@ -25,8 +24,3 @@
 /* System Function Prototypes                                                 */
 /******************************************************************************/
 
-/* Custom oscillator configuration funtions, reset source evaluation
-functions, and other non-peripheral microcontroller initialization functions
-go here. */
-
-void ConfigureOscillator(void); /* Handles clock switching/osc initialization */

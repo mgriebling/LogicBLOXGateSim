@@ -20,12 +20,16 @@
 #define X4DIR	TRISAbits.TRISA1
 #define X5DIR	TRISAbits.TRISA0
 
+#define XPINS	(0x37)
+
 #define IN		(1)
 #define OUT		(0)
 
-const TCHAR DiePatterns[] = {0x01, 0x06, 0x07, 0x66, 0x67, 0x7E};
+const TCHAR DiePatterns[] = {0x00, 0x01, 0x06, 0x07, 0x66, 0x67, 0x7E};
 
-static TCHAR phase = 0;
+static CARDINAL phase;
+
+#define MAXCYCLES	(14)
 
 void LightDie1(TCHAR pips) {
 	switch (pips & (1 << phase)) {
@@ -107,11 +111,35 @@ void LightDie2(TCHAR pips) {
 	}	
 }
 
+/* Shows dice1 and dice2 numbers on the LEDs. */
 void Dice_Show (TCHAR dice1, TCHAR dice2) {
-	for (phase = 0; phase < 14; phase++) {
-		TRISA |= 0x37; // everything is an input to turn off LEDs
-		if (phase < 7) LightDie1(DiePatterns[dice1]);
-		else LightDie2(DiePatterns[dice2]);
+	for (phase = 0; phase < MAXCYCLES; phase++) {
+		LATA &= (~XPINS);  // all outputs low
+		TRISA &= (~XPINS); 
+		TRISA |= XPINS;	   // everything is an input to turn off LEDs
+		if (phase < MAXCYCLES/2) LightDie1(DiePatterns[dice1]);
+		else if (phase < MAXCYCLES) LightDie2(DiePatterns[dice2]);
 		__delay_ms(1);
 	}
+}
+
+/* Dims the given dice to fully off over time * 14 mS */
+void Dice_Dim (TCHAR dice1, TCHAR dice2) {
+	CARDINAL delay = 200;
+	CARDINAL cnt;
+	CARDINAL maxCycles = MAXCYCLES;
+	while (delay > 0 && maxCycles < 0x1FF) {
+		for (phase = 0; phase < maxCycles; phase++) {
+			LATA &= (~XPINS);  // all outputs low
+			TRISA &= (~XPINS); 
+			TRISA |= XPINS; // everything is an input to turn off LEDs
+			if (phase < MAXCYCLES / 2) LightDie1(DiePatterns[dice1]);
+			else if (phase < MAXCYCLES) LightDie2(DiePatterns[dice2]);
+			__delay_us(20);
+		}
+		delay--;
+		if ((delay & 0xF) == 0 && maxCycles < 0x1FF) maxCycles+=4;
+	}
+	LATA &= (~XPINS);  // all outputs low
+	TRISA &= ~XPINS;    // turn everything to outputs except Shake input
 }

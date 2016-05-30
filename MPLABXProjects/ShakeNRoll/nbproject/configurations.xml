@@ -4,6 +4,14 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
+      <logicalFolder name="mcc_generated_files"
+                     displayName="MCC Generated Files"
+                     projectFiles="true">
+        <itemPath>mcc_generated_files/tmr1.h</itemPath>
+        <itemPath>mcc_generated_files/pin_manager.h</itemPath>
+        <itemPath>mcc_generated_files/interrupt_manager.h</itemPath>
+        <itemPath>mcc_generated_files/mcc.h</itemPath>
+      </logicalFolder>
       <itemPath>system.h</itemPath>
       <itemPath>user.h</itemPath>
       <itemPath>Dice.h</itemPath>
@@ -11,10 +19,15 @@
     <logicalFolder name="SourceFiles"
                    displayName="Source Files"
                    projectFiles="true">
-      <itemPath>configuration_bits.c</itemPath>
-      <itemPath>interrupts.c</itemPath>
+      <logicalFolder name="mcc_generated_files"
+                     displayName="MCC Generated Files"
+                     projectFiles="true">
+        <itemPath>mcc_generated_files/tmr1.c</itemPath>
+        <itemPath>mcc_generated_files/pin_manager.c</itemPath>
+        <itemPath>mcc_generated_files/interrupt_manager.c</itemPath>
+        <itemPath>mcc_generated_files/mcc.c</itemPath>
+      </logicalFolder>
       <itemPath>main.c</itemPath>
-      <itemPath>system.c</itemPath>
       <itemPath>user.c</itemPath>
       <itemPath>Dice.c</itemPath>
     </logicalFolder>
@@ -22,11 +35,15 @@
                    displayName="Important Files"
                    projectFiles="false">
       <itemPath>Makefile</itemPath>
+      <itemPath>device_config.mcc</itemPath>
     </logicalFolder>
     <itemPath>getting_started.txt</itemPath>
     <itemPath>legal_disclaimer.txt</itemPath>
     <itemPath>project_information.txt</itemPath>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>mcc_generated_files</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
     <conf name="XC8_PIC12F1572" type="2">

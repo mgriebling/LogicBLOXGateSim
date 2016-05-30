@@ -12,8 +12,9 @@
 extern "C" {
 #endif
 
-void Dice_Show (TCHAR dice1, TCHAR dice2);
+extern void Dice_Show (TCHAR dice1, TCHAR dice2);
 
+extern void Dice_Dim (TCHAR dice1, TCHAR dice2);
 
 #ifdef	__cplusplus
 }
